@@ -1,6 +1,6 @@
 # Object relational mapping with Python, Flask, SQL, MySQLAlchemy
 
-from flask import Flask, request, redirect, render_template, session
+from flask import Flask, request, redirect, render_template, session, flash
 # importing sqlalchemy modules
 from flask_sqlalchemy import SQLAlchemy
 
@@ -51,11 +51,11 @@ def login():
 
         if user and user.password == password:
             session['email'] = email
-
+            flash("Logged In")
+            print(session)
             return redirect('/')
         else:
-            # TODO - Explain why the login failed
-            return '<h1>Error!</h1>'
+            flash('User password incorrect or user does not exist.', 'error')
 
     return render_template('login.html')
 
