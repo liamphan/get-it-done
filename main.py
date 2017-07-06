@@ -22,6 +22,27 @@ class Task(db.Model):
         self.name = name
         self.completed = False
 
+# user class for login information
+class User(db.Model):
+    # three fields for the user object
+    id = db.Column(db.Integer, primary_key = True)
+    email = db.Column(db.String(120), unique = True)
+    password = db.Column(db.String(120))
+
+    # initializer or constructor for user class
+    def __init__(self, email, password):
+        self.email = email
+        self.password = password
+
+# login handlers
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
 # index request handler
 @app.route('/', methods=['POST', 'GET'])
 def index():
