@@ -1,6 +1,6 @@
 # Object relational mapping with Python, Flask, SQL, MySQLAlchemy
 
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, session
 # importing sqlalchemy modules
 from flask_sqlalchemy import SQLAlchemy
 
@@ -10,6 +10,7 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://get-it-done:getitdone@localhost:8889/get-it-done'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+app.secret_key = 'asdfadfadf'
 
 # persistent task class
 class Task(db.Model):
@@ -34,6 +35,12 @@ class User(db.Model):
         self.email = email
         self.password = password
 
+@app.before_request
+def require_login():
+    allowed_routes = ['login', 'register']
+    if request.endpoint not in allowed_routes and 'email' not in session:
+        return redirect('/login')
+
 # login handlers
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -41,8 +48,10 @@ def login():
         email = request.form['email']
         password = request.form['password']
         user = User.query.filter_by(email = email).first()
+
         if user and user.password == password:
-            # TODO - "Remember" that the user has logged in.
+            session['email'] = email
+
             return redirect('/')
         else:
             # TODO - Explain why the login failed
@@ -64,13 +73,19 @@ def register():
             new_user = User(email, password)
             db.session.add(new_user)
             db.session.commit()
-            # TODO - "Remember" the user information
+            session['email'] = email
+
             return redirect('/')
         else:
             # TODO - user better response messaging
             return "<h1>Duplicate User</h1>"
 
     return render_template('register.html')
+
+@app.route('/logout')
+def logout():
+    del session['email']
+    return redirect('/')
 
 # index request handler
 @app.route('/', methods=['POST', 'GET'])
