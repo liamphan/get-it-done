@@ -18,10 +18,12 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(120))
     completed = db.Column(db.Boolean)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, name):
+    def __init__(self, name, owner):
         self.name = name
         self.completed = False
+        self.owner = owner
 
 # user class for login information
 class User(db.Model):
@@ -29,6 +31,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     email = db.Column(db.String(120), unique = True)
     password = db.Column(db.String(120))
+    tasks = db.relationship('Task', backref='owner')
 
     # initializer or constructor for user class
     def __init__(self, email, password):
@@ -91,16 +94,17 @@ def logout():
 @app.route('/', methods=['POST', 'GET'])
 def index():
 
+    owner = User.query.filter_by(email = session['email']).first()
     # if request is POST, coming from submitting the form.
     # then grab that data and creates a new class
     if request.method == 'POST':
         task_name = request.form['task']
-        new_task = Task(task_name)
+        new_task = Task(task_name, owner)
         db.session.add(new_task)
         db.session.commit()
 
-    tasks = Task.query.filter_by(completed = False).all()
-    completed_tasks = Task.query.filter_by(completed = True).all()
+    tasks = Task.query.filter_by(completed = False, owner = owner).all()
+    completed_tasks = Task.query.filter_by(completed = True, owner = owner).all()
     return render_template('todos.html', title = "Get It Done!",
         tasks = tasks, completed_tasks = completed_tasks)
 
