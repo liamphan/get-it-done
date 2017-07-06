@@ -1,7 +1,6 @@
 # Object relational mapping with Python, Flask, SQL, MySQLAlchemy
 
 from flask import Flask, request, redirect, render_template, session, flash
-# importing sqlalchemy modules
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -31,7 +30,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     email = db.Column(db.String(120), unique = True)
     password = db.Column(db.String(120))
-    tasks = db.relationship('Task', backref='owner')
+    tasks = db.relationship('Task', backref = 'owner')
 
     # initializer or constructor for user class
     def __init__(self, email, password):
@@ -50,15 +49,14 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        user = User.query.filter_by(email = email).first()
+        user = User.query.filter_by(email=email).first()
 
         if user and user.password == password:
             session['email'] = email
-            flash("Logged In")
-            print(session)
+            flash("Logged in")
             return redirect('/')
         else:
-            flash('User password incorrect or user does not exist.', 'error')
+            flash('User password incorrect or user does not exist', 'error')
 
     return render_template('login.html')
 
@@ -69,19 +67,18 @@ def register():
         password = request.form['password']
         verify = request.form['verify']
 
-        # TODO - validate user's input data
+        # TODO - validate user's data
 
-        existing_user = User.query.filter_by(email = email).first()
+        existing_user = User.query.filter_by(email=email).first()
         if not existing_user:
             new_user = User(email, password)
             db.session.add(new_user)
             db.session.commit()
             session['email'] = email
-
             return redirect('/')
         else:
             # TODO - user better response messaging
-            return "<h1>Duplicate User</h1>"
+            return "<h1>Duplicate user</h1>"
 
     return render_template('register.html')
 
@@ -117,7 +114,6 @@ def delete_task():
     task.completed = True
     db.session.add(task)
     db.session.commit()
-
     return redirect('/')
 
 if __name__ == '__main__':
